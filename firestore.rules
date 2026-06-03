@@ -1,0 +1,107 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    // Helper: user is authenticated
+    function isAuth() {
+      return request.auth != null;
+    }
+
+    // Helper: user is a participant of the room
+    function isParticipant(roomCode) {
+      return isAuth() &&
+        request.auth.uid in get(/databases/$(database)/documents/rooms/$(roomCode)).data.participants;
+    }
+
+    // Helper: room has fewer than 2 participants
+    function roomHasSpace(roomCode) {
+      return get(/databases/$(database)/documents/rooms/$(roomCode)).data.participants.size() < 2;
+    }
+
+    // ---- Rooms collection ----
+    match /rooms/{roomCode} {
+      // Anyone authenticated can read a room (needed to check if room exists)
+      allow read: if isAuth();
+
+      // Create: only if room doesn't exist yet AND code is valid
+      allow create: if isAuth() &&
+        request.resource.data.participants == [request.auth.uid] &&
+        request.resource.data.keys().hasAll(['createdAt', 'lastActivityAt', 'participants']);
+
+      // Update: participants can update, OR new user can join if room has space
+      allow update: if isAuth() &&
+        (
+          // === Case 1: New user joining room (not yet a participant) ===
+          // Only allowed when room has < 2 people, and they're adding themselves
+          (!(request.auth.uid in resource.data.participants) &&
+           roomHasSpace(roomCode) &&
+           request.resource.data.participants.hasAll(resource.data.participants) &&
+           request.resource.data.participants.hasAll([request.auth.uid]) &&
+           resource.data.participants.size() + 1 == request.resource.data.participants.size()) ||
+          // === Case 2: Existing participant updating ===
+          (isParticipant(roomCode) &&
+            (
+              // Allow adding second participant
+              (request.resource.data.participants.hasAll(resource.data.participants) &&
+               request.resource.data.participants.size() <= 2 &&
+               request.resource.data.participants.hasAny([request.auth.uid])) ||
+              // Allow updating lastActivityAt
+              request.resource.data.diff(resource.data).affectedKeys().hasOnly(['lastActivityAt']) ||
+              request.resource.data.diff(resource.data).affectedKeys().hasOnly(['lastActivityAt', 'participants'])
+            ))
+        );
+
+      // Delete: only participants
+      allow delete: if isParticipant(roomCode);
+    }
+
+    // ---- Menu sub-collection ----
+    match /rooms/{roomCode}/menu/{dishId} {
+      allow read: if isParticipant(roomCode);
+      allow create: if isParticipant(roomCode) &&
+        request.resource.data.createdBy == request.auth.uid &&
+        request.resource.data.name is string &&
+        request.resource.data.name.size() <= 30;
+      allow update, delete: if isParticipant(roomCode) &&
+        resource.data.createdBy == request.auth.uid;
+    }
+
+    // ---- Orders sub-collection ----
+    match /rooms/{roomCode}/orders/{orderId} {
+      allow read: if isParticipant(roomCode);
+      allow create: if isParticipant(roomCode) &&
+        request.resource.data.orderedBy == request.auth.uid &&
+        request.resource.data.status == 'ordered';
+      allow update: if isParticipant(roomCode) &&
+        (
+          // Claim: ordered -> cooking (non-orderer claims)
+          (resource.data.status == 'ordered' &&
+           request.resource.data.status == 'cooking' &&
+           resource.data.orderedBy != request.auth.uid &&
+           request.resource.data.cookedBy == request.auth.uid) ||
+          // Serve: cooking -> served (same cook)
+          (resource.data.status == 'cooking' &&
+           request.resource.data.status == 'served' &&
+           resource.data.cookedBy == request.auth.uid)
+        );
+      allow delete: if false;
+    }
+
+    // ---- Diary sub-collection ----
+    match /rooms/{roomCode}/diary/{entryId} {
+      allow read: if isParticipant(roomCode);
+      allow create: if isParticipant(roomCode);
+      allow update: if false;
+      allow delete: if false;
+    }
+
+    // ---- Stickers sub-sub-collection ----
+    match /rooms/{roomCode}/diary/{entryId}/stickers/{stickerId} {
+      allow read: if isParticipant(roomCode);
+      allow create: if isParticipant(roomCode) &&
+        request.resource.data.placedBy == request.auth.uid &&
+        request.resource.data.emoji in ['😋', '👍', '😘', '🥰', '😅'];
+      allow update, delete: if false;
+    }
+  }
+}

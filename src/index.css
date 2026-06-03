@@ -1,0 +1,208 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    --color-cream: #FFF8F0;
+    --color-peach: #FFD1C1;
+    --color-pink: #FFB3C1;
+    --color-pink-dark: #FF85A2;
+    --color-pink-deep: #FF6B8A;
+    --color-warm-yellow: #FFEAA7;
+    --color-rose: #FF6B8A;
+    --color-brown: #8B6F5E;
+    --color-chocolate: #6B4226;
+  }
+
+  * {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+  }
+
+  html {
+    scroll-behavior: smooth;
+    -webkit-tap-highlight-color: transparent;
+  }
+
+  body {
+    font-family: 'Noto Sans SC', sans-serif;
+    background-color: #FFF8F0;
+    color: #6B4226;
+    min-height: 100dvh;
+    overflow-x: hidden;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
+
+  #root {
+    min-height: 100dvh;
+    display: flex;
+    flex-direction: column;
+  }
+
+  /* Custom scrollbar */
+  ::-webkit-scrollbar {
+    width: 6px;
+  }
+  ::-webkit-scrollbar-track {
+    background: #FFF0E0;
+    border-radius: 3px;
+  }
+  ::-webkit-scrollbar-thumb {
+    background: #FFD1C1;
+    border-radius: 3px;
+  }
+  ::-webkit-scrollbar-thumb:hover {
+    background: #FFB3C1;
+  }
+}
+
+@layer components {
+  /* Sweet card style */
+  .card-cute {
+    @apply bg-white rounded-2xl shadow-cute border-2 border-peach/30 p-4;
+  }
+
+  /* Gradient backgrounds */
+  .bg-love {
+    background: linear-gradient(135deg, #FFF8F0 0%, #FFE8DD 50%, #FFD1C1 100%);
+  }
+  .bg-love-warm {
+    background: linear-gradient(135deg, #FFEAA7 0%, #FFD1C1 50%, #FFB3C1 100%);
+  }
+
+  /* Text gradients */
+  .text-gradient-love {
+    background: linear-gradient(135deg, #FF6B8A 0%, #FF85A2 50%, #FFB3C1 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+  }
+
+  /* Sweet button base */
+  .btn-sweet {
+    @apply inline-flex items-center justify-center gap-2 px-6 py-3 rounded-2xl
+           font-cute text-lg font-bold text-white
+           shadow-cute transition-all duration-200
+           active:scale-95 select-none;
+    background: linear-gradient(135deg, #FF85A2 0%, #FF6B8A 100%);
+  }
+  .btn-sweet:hover {
+    @apply shadow-cute-hover;
+    background: linear-gradient(135deg, #FF9BB5 0%, #FF85A2 100%);
+  }
+  .btn-sweet:active {
+    transform: scale(0.95);
+  }
+
+  /* Secondary button */
+  .btn-sweet-secondary {
+    @apply inline-flex items-center justify-center gap-2 px-6 py-3 rounded-2xl
+           font-cute text-lg font-bold text-pink-deep
+           border-2 border-pink bg-white
+           shadow-cute transition-all duration-200
+           active:scale-95 select-none;
+  }
+  .btn-sweet-secondary:hover {
+    @apply bg-pink/10 shadow-cute-hover;
+  }
+
+  /* Input field */
+  .input-sweet {
+    @apply w-full px-5 py-3 rounded-2xl font-body text-base
+           bg-cream-dark border-2 border-peach
+           text-chocolate placeholder-brown-light
+           outline-none transition-all duration-200;
+  }
+  .input-sweet:focus {
+    @apply border-pink-dark shadow-cute;
+  }
+
+  /* Badge */
+  .badge-sweet {
+    @apply inline-flex items-center px-3 py-1 rounded-full
+           font-body text-xs font-medium
+           bg-peach-light text-pink-deep;
+  }
+
+  /* Page container */
+  .page-container {
+    @apply max-w-6xl mx-auto w-full px-4 py-4 md:py-6;
+  }
+}
+
+@layer utilities {
+  .text-shadow-soft {
+    text-shadow: 0 2px 4px rgba(255, 133, 162, 0.3);
+  }
+}
+
+/* ===== Sweet Animation Effects ===== */
+
+/* Flying emoji when ordering */
+@keyframes fly-to-orders {
+  0% { transform: scale(1) translate(0, 0); opacity: 1; }
+  50% { transform: scale(2.5) translate(30px, -60px); opacity: 0.8; }
+  100% { transform: scale(0.3) translate(80px, -120px); opacity: 0; }
+}
+.animate-fly-order {
+  animation: fly-to-orders 0.7s ease-out forwards;
+}
+
+/* Steam animation for cooking */
+@keyframes steam-rise {
+  0% { transform: translateY(0) scale(1); opacity: 0.6; }
+  50% { transform: translateY(-20px) scale(1.5); opacity: 0.3; }
+  100% { transform: translateY(-40px) scale(2); opacity: 0; }
+}
+.animate-steam { animation: steam-rise 1.5s ease-out infinite; }
+.animate-steam-2 { animation: steam-rise 1.8s ease-out 0.5s infinite; }
+.animate-steam-3 { animation: steam-rise 2s ease-out 0.9s infinite; }
+
+/* Polaroid photo card — safe for all content, no clip-path */
+.polaroid-card {
+  position: relative;
+  border-width: 3px;
+  border-style: solid;
+  border-radius: 4px;
+  box-shadow:
+    inset 0 0 0 6px #fff,
+    0 4px 16px rgba(139, 111, 94, 0.12);
+  padding: 14px 18px 18px !important;
+  background: #fffdf8 !important;
+}
+/* Photo corner tape */
+.polaroid-card::before {
+  content: '';
+  position: absolute;
+  top: -4px;
+  left: 20px;
+  width: 32px;
+  height: 10px;
+  background: rgba(255, 255, 255, 0.85);
+  border: 1px solid rgba(139, 111, 94, 0.1);
+  border-radius: 2px;
+  transform: rotate(-3deg);
+  z-index: 2;
+}
+
+/* Chef crown glow */
+@keyframes crown-glow {
+  0%, 100% { filter: drop-shadow(0 0 4px #FFD166); }
+  50% { filter: drop-shadow(0 0 10px #FFD166) drop-shadow(0 0 20px #FFB3C1); }
+}
+.animate-crown {
+  animation: crown-glow 2s ease-in-out infinite;
+}
+
+/* Bounce-in for Today's Chef badge */
+@keyframes chef-badge-in {
+  0% { transform: scale(0) rotate(-10deg); }
+  60% { transform: scale(1.2) rotate(3deg); }
+  100% { transform: scale(1) rotate(0deg); }
+}
+.animate-chef-badge {
+  animation: chef-badge-in 0.5s cubic-bezier(0.68, -0.55, 0.265, 1.55) forwards;
+}
